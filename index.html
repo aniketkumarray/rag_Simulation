@@ -3,189 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAG Logic Simulator</title>
+    <title>Advanced RAG Learning Lab</title>
     <style>
         :root {
-            --primary: #6366f1;
             --bg: #0f172a;
             --card: #1e293b;
-            --text: #f8fafc;
+            --primary: #6366f1;
+            --secondary: #94a3b8;
             --accent: #22d3ee;
+            --success: #10b981;
+            --text: #f8fafc;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', system-ui, sans-serif;
             background-color: var(--bg);
             color: var(--text);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem;
+            line-height: 1.6;
             margin: 0;
+            padding: 20px;
         }
 
-        .container {
-            max-width: 900px;
-            width: 100%;
-        }
+        .container { max-width: 1100px; margin: 0 auto; }
 
-        header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
+        header { text-align: center; margin-bottom: 40px; }
+        header h1 { font-size: 2.5rem; margin-bottom: 10px; color: var(--accent); }
 
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
+        .grid { display: grid; grid-template-columns: 350px 1fr; gap: 20px; }
 
-        .card {
+        /* Control Center */
+        .panel {
             background: var(--card);
-            padding: 1.5rem;
+            padding: 20px;
             border-radius: 12px;
             border: 1px solid #334155;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            height: fit-content;
         }
 
-        .status-box {
-            margin-top: 1rem;
-            padding: 1rem;
-            background: #000;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 0.9rem;
-            color: var(--accent);
-            min-height: 100px;
-            border-left: 4px solid var(--primary);
+        label { display: block; margin-top: 15px; font-weight: 600; font-size: 0.9rem; color: var(--secondary); }
+        textarea, input, select {
+            width: 100%; padding: 10px; margin-top: 5px;
+            background: #0f172a; border: 1px solid #334155;
+            color: white; border-radius: 6px; box-sizing: border-box;
         }
 
-        input, textarea {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            background: #334155;
-            border: none;
-            color: white;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
         button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-            transition: opacity 0.2s;
+            padding: 12px; border-radius: 6px; border: none; font-weight: bold;
+            cursor: pointer; transition: 0.3s;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        button:hover { opacity: 0.8; transform: translateY(-1px); }
+
+        /* Journey Steps */
+        .journey-container {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px;
+        }
+        .step-card {
+            background: var(--card); padding: 15px; border-radius: 8px;
+            text-align: center; font-size: 0.8rem; border-bottom: 4px solid #334155;
+        }
+        .step-card.active { border-bottom-color: var(--accent); background: #1e293b; }
+        .step-card h4 { margin: 0 0 5px 0; color: var(--accent); }
+
+        /* Results Area */
+        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .display-box {
+            background: #000; padding: 15px; border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace; font-size: 0.85rem;
+            height: 250px; overflow-y: auto; border: 1px solid #334155;
+        }
+        .chunk-item {
+            background: #1e293b; margin-bottom: 8px; padding: 8px;
+            border-left: 3px solid var(--primary); border-radius: 4px;
         }
 
-        button:hover { opacity: 0.9; }
-
-        .highlight { color: var(--accent); font-weight: bold; }
-        
-        .arrow {
-            text-align: center;
-            font-size: 2rem;
-            margin: 10px 0;
-            color: var(--primary);
+        .final-answer {
+            grid-column: span 2; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 20px; border-radius: 12px; border: 1px solid var(--primary); margin-top: 20px;
         }
+
+        .tag { font-size: 0.7rem; text-transform: uppercase; color: var(--accent); font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>RAG Simulator</h1>
-        <p>Interactive walk-through of the Retrieval-Augmented Generation process.</p>
+        <h1>Interactive RAG Learning Lab</h1>
+        <p>Understand Retrieval-Augmented Generation by simulating every step visually.</p>
     </header>
 
     <div class="grid">
-        <div class="card">
-            <h3>1. Knowledge Ingestion</h3>
-            <p>Paste a custom fact the AI wouldn't know otherwise:</p>
-            <textarea id="docInput" rows="4">The secret code for the office pantry is 8842. The company picnic is held at Mars Park every Tuesday.</textarea>
-            <button onclick="processIngestion()">Chunk & Embed</button>
-            <div id="ingestStatus" class="status-box">Waiting for data...</div>
-        </div>
+        <aside class="panel">
+            <h3 style="margin-top:0">Control Center</h3>
+            
+            <label>Knowledge Base Documents</label>
+            <textarea id="kbInput" rows="8">The company holiday party is on Dec 20th at The Grand Hall. ---DOC--- The wifi password for guests is 'BlueSky2024'. ---DOC--- Employees get a $500 wellness stipend annually.</textarea>
+            
+            <label>Chunk Size (Approx Words)</label>
+            <input type="number" id="chunkSize" value="10">
 
-        <div class="card">
-            <h3>2. Vector Database</h3>
-            <p>Your "Chunks" stored as searchable numbers:</p>
-            <div id="vectorDB" class="status-box">Database empty.</div>
-        </div>
-    </div>
+            <label>User Prompt</label>
+            <input type="text" id="userPrompt" value="Where is the holiday party and what is the wifi?">
 
-    <div class="arrow">↓</div>
+            <div class="btn-group">
+                <button class="btn-primary" onclick="runFullSimulation()">Run Full Simulation</button>
+                <button class="btn-outline" onclick="resetSim()">Reset</button>
+            </div>
+        </aside>
 
-    <div class="grid">
-        <div class="card">
-            <h3>3. User Question</h3>
-            <input type="text" id="userQuery" placeholder="Ask something about the pantry or picnic...">
-            <button onclick="runRAG()">Run RAG Pipeline</button>
-        </div>
+        <main>
+            <div class="journey-container">
+                <div class="step-card" id="step1"><h4>1. Collect</h4><p>Docs enter KB</p></div>
+                <div class="step-card" id="step2"><h4>2. Chunk</h4><p>Split text</p></div>
+                <div class="step-card" id="step3"><h4>3. Embed</h4><p>Turn to Math</p></div>
+                <div class="step-card" id="step4"><h4>4. Search</h4><p>Find matches</p></div>
+                <div class="step-card" id="step5"><h4>5. Generate</h4><p>LLM Answer</p></div>
+            </div>
 
-        <div class="card">
-            <h3>4. AI Response</h3>
-            <div id="finalOutput" class="status-box">The AI's answer will appear here...</div>
-        </div>
-    </div>
+            <div class="results-grid">
+                <div>
+                    <span class="tag">Knowledge Base & Vector DB</span>
+                    <div id="vectorView" class="display-box">Waiting for ingestion...</div>
+                </div>
+                <div>
+                    <span class="tag">Simulation Log</span>
+                    <div id="logView" class="display-box">Ready.</div>
+                </div>
+            </div>
 
-    <div class="card" style="margin-top: 20px;">
-        <h3>Pipeline Trace (What happened?)</h3>
-        <div id="trace" class="status-box" style="color: #94a3b8;">No process started.</div>
+            <div class="final-answer">
+                <span class="tag">Final RAG Answer</span>
+                <div id="answerView" style="font-size: 1.1rem; margin-top: 10px;">
+                    <em>Run the simulation to see the final grounded answer.</em>
+                </div>
+            </div>
+        </main>
     </div>
 </div>
 
 <script>
-    let knowledgeChunks = [];
-
-    function processIngestion() {
-        const text = document.getElementById('docInput').value;
-        const ingestStatus = document.getElementById('ingestStatus');
-        const vectorDB = document.getElementById('vectorDB');
-
-        // Logic: Simple Chunking (splitting by sentences)
-        knowledgeChunks = text.split('.').filter(t => t.trim().length > 0);
-        
-        ingestStatus.innerHTML = `Created ${knowledgeChunks.length} chunks. <br>Converting to vectors... [DONE]`;
-        
-        vectorDB.innerHTML = knowledgeChunks.map((c, i) => 
-            `<div>Chunk ${i+1}: [${Math.random().toFixed(2)}, ${Math.random().toFixed(2)}] -> "${c.trim()}"</div>`
-        ).join('');
+    let chunks = [];
+    
+    function log(message, color = "white") {
+        const logView = document.getElementById('logView');
+        logView.innerHTML += `<div style="color: ${color}">> ${message}</div>`;
+        logView.scrollTop = logView.scrollHeight;
     }
 
-    function runRAG() {
-        const query = document.getElementById('userQuery').value;
-        const trace = document.getElementById('trace');
-        const output = document.getElementById('finalOutput');
+    function setActiveStep(stepId) {
+        document.querySelectorAll('.step-card').forEach(s => s.classList.remove('active'));
+        document.getElementById('step' + stepId).classList.add('active');
+    }
 
-        if (knowledgeChunks.length === 0) {
-            alert("Please ingest knowledge first!");
-            return;
+    async function runFullSimulation() {
+        resetSim();
+        const kbText = document.getElementById('kbInput').value;
+        const size = parseInt(document.getElementById('chunkSize').value);
+        const query = document.getElementById('userPrompt').value;
+
+        // 1. Collect
+        setActiveStep(1);
+        log("Collecting documents from input...");
+        const docs = kbText.split('---DOC---');
+        await sleep(600);
+
+        // 2. Chunking
+        setActiveStep(2);
+        log(`Chunking ${docs.length} documents into ${size}-word segments...`);
+        chunks = [];
+        docs.forEach((doc, docIdx) => {
+            const words = doc.trim().split(' ');
+            for (let i = 0; i < words.length; i += size) {
+                chunks.push({
+                    text: words.slice(i, i + size).join(' '),
+                    id: `d${docIdx}-c${i}`,
+                    vector: Array.from({length: 4}, () => Math.random().toFixed(2))
+                });
+            }
+        });
+        updateVectorView();
+        await sleep(800);
+
+        // 3. Embedding
+        setActiveStep(3);
+        log("Generating high-dimensional embeddings (vectors) for each chunk...");
+        await sleep(800);
+
+        // 4. Search
+        setActiveStep(4);
+        log(`Embedding user query: "${query}"`);
+        log("Searching for chunks with highest cosine similarity...");
+        
+        // Simulating search - find chunks that contain query keywords
+        const keywords = query.toLowerCase().split(' ');
+        const retrieved = chunks.filter(c => 
+            keywords.some(k => k.length > 3 && c.text.toLowerCase().includes(k))
+        ).slice(0, 2);
+
+        if(retrieved.length > 0) {
+            log(`Found ${retrieved.length} relevant chunks!`, 'var(--success)');
+        } else {
+            log("No direct matches. Using top semantic matches.", 'var(--secondary)');
+            retrieved.push(chunks[0]);
         }
+        await sleep(800);
 
-        // Step 1: Retrieval (Simulation)
-        trace.innerHTML = `> Query received: "${query}"<br>`;
-        trace.innerHTML += `> Searching Vector DB for semantic match...<br>`;
+        // 5. Generate
+        setActiveStep(5);
+        log("Augmenting prompt with retrieved context...");
+        const context = retrieved.map(r => r.text).join(' | ');
+        log("LLM is generating answer based ONLY on provided context...");
         
-        // Simple keyword matching for simulation purposes
-        const retrieved = knowledgeChunks.find(c => 
-            query.toLowerCase().split(' ').some(word => c.toLowerCase().includes(word))
-        ) || "No relevant context found.";
-
-        trace.innerHTML += `> <span class="highlight">Retrieved Context:</span> "${retrieved}"<br>`;
-        trace.innerHTML += `> Sending Context + Query to LLM...<br>`;
-
-        // Step 2: Generation
         setTimeout(() => {
-            output.innerHTML = `<strong>LLM says:</strong> Based on the documents provided, ${retrieved.toLowerCase()}.`;
-            trace.innerHTML += `> Response generated successfully!`;
-        }, 800);
+            document.getElementById('answerView').innerHTML = `
+                <div style="color: var(--accent); margin-bottom:10px; font-size:0.8rem;">
+                    <strong>Context used:</strong> ${context}
+                </div>
+                <strong>AI Answer:</strong> The holiday party is scheduled for December 20th at the Grand Hall. For your convenience, guests can use the wifi password '${retrieved.some(c => c.text.includes('BlueSky')) ? 'BlueSky2024' : '[Not found in context]'}'.
+            `;
+            log("Simulation Complete.", 'var(--accent)');
+        }, 1000);
     }
+
+    function updateVectorView() {
+        const view = document.getElementById('vectorView');
+        view.innerHTML = chunks.map(c => `
+            <div class="chunk-item">
+                <div style="font-size:0.7rem; color:var(--accent)">Vector: [${c.vector.join(', ')}]</div>
+                <div>${c.text}</div>
+            </div>
+        `).join('');
+    }
+
+    function resetSim() {
+        document.getElementById('logView').innerHTML = "";
+        document.getElementById('vectorView').innerHTML = "Waiting for ingestion...";
+        document.getElementById('answerView').innerHTML = "<em>Run the simulation to see the final grounded answer.</em>";
+        document.querySelectorAll('.step-card').forEach(s => s.classList.remove('active'));
+    }
+
+    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 </script>
 
 </body>
