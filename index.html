@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Logic Simulator</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --accent: #22d3ee;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-box {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #000;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--accent);
+            min-height: 100px;
+            border-left: 4px solid var(--primary);
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: #334155;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        .highlight { color: var(--accent); font-weight: bold; }
+        
+        .arrow {
+            text-align: center;
+            font-size: 2rem;
+            margin: 10px 0;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>RAG Simulator</h1>
+        <p>Interactive walk-through of the Retrieval-Augmented Generation process.</p>
+    </header>
+
+    <div class="grid">
+        <div class="card">
+            <h3>1. Knowledge Ingestion</h3>
+            <p>Paste a custom fact the AI wouldn't know otherwise:</p>
+            <textarea id="docInput" rows="4">The secret code for the office pantry is 8842. The company picnic is held at Mars Park every Tuesday.</textarea>
+            <button onclick="processIngestion()">Chunk & Embed</button>
+            <div id="ingestStatus" class="status-box">Waiting for data...</div>
+        </div>
+
+        <div class="card">
+            <h3>2. Vector Database</h3>
+            <p>Your "Chunks" stored as searchable numbers:</p>
+            <div id="vectorDB" class="status-box">Database empty.</div>
+        </div>
+    </div>
+
+    <div class="arrow">↓</div>
+
+    <div class="grid">
+        <div class="card">
+            <h3>3. User Question</h3>
+            <input type="text" id="userQuery" placeholder="Ask something about the pantry or picnic...">
+            <button onclick="runRAG()">Run RAG Pipeline</button>
+        </div>
+
+        <div class="card">
+            <h3>4. AI Response</h3>
+            <div id="finalOutput" class="status-box">The AI's answer will appear here...</div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+        <h3>Pipeline Trace (What happened?)</h3>
+        <div id="trace" class="status-box" style="color: #94a3b8;">No process started.</div>
+    </div>
+</div>
+
+<script>
+    let knowledgeChunks = [];
+
+    function processIngestion() {
+        const text = document.getElementById('docInput').value;
+        const ingestStatus = document.getElementById('ingestStatus');
+        const vectorDB = document.getElementById('vectorDB');
+
+        // Logic: Simple Chunking (splitting by sentences)
+        knowledgeChunks = text.split('.').filter(t => t.trim().length > 0);
+        
+        ingestStatus.innerHTML = `Created ${knowledgeChunks.length} chunks. <br>Converting to vectors... [DONE]`;
+        
+        vectorDB.innerHTML = knowledgeChunks.map((c, i) => 
+            `<div>Chunk ${i+1}: [${Math.random().toFixed(2)}, ${Math.random().toFixed(2)}] -> "${c.trim()}"</div>`
+        ).join('');
+    }
+
+    function runRAG() {
+        const query = document.getElementById('userQuery').value;
+        const trace = document.getElementById('trace');
+        const output = document.getElementById('finalOutput');
+
+        if (knowledgeChunks.length === 0) {
+            alert("Please ingest knowledge first!");
+            return;
+        }
+
+        // Step 1: Retrieval (Simulation)
+        trace.innerHTML = `> Query received: "${query}"<br>`;
+        trace.innerHTML += `> Searching Vector DB for semantic match...<br>`;
+        
+        // Simple keyword matching for simulation purposes
+        const retrieved = knowledgeChunks.find(c => 
+            query.toLowerCase().split(' ').some(word => c.toLowerCase().includes(word))
+        ) || "No relevant context found.";
+
+        trace.innerHTML += `> <span class="highlight">Retrieved Context:</span> "${retrieved}"<br>`;
+        trace.innerHTML += `> Sending Context + Query to LLM...<br>`;
+
+        // Step 2: Generation
+        setTimeout(() => {
+            output.innerHTML = `<strong>LLM says:</strong> Based on the documents provided, ${retrieved.toLowerCase()}.`;
+            trace.innerHTML += `> Response generated successfully!`;
+        }, 800);
+    }
+</script>
+
+</body>
+</html>
